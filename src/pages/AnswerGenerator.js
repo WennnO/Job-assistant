@@ -19,6 +19,181 @@ const AnswerGenerator = () => {
   const [loading, setLoading] = useState(false);
   const [editingAnswer, setEditingAnswer] = useState(null);
 
+  // Generate personalized answer based on question, resume, and job description
+  const generatePersonalizedAnswer = (question, resume, jobDescription) => {
+    // Extract key information from resume
+    const resumeKeywords = extractKeywords(resume);
+    const jobKeywords = extractKeywords(jobDescription);
+    
+    // Generate answer based on question type
+    switch (question) {
+      case 'Why are you interested in this role?':
+        return `I'm very excited about this role because it perfectly aligns with my background in ${resumeKeywords.skills?.join(', ') || 'software development'}. Having worked with ${resumeKeywords.technologies?.join(', ') || 'various technologies'} for ${resumeKeywords.experience || 'several years'}, I'm particularly drawn to the opportunity to ${extractJobResponsibilities(jobDescription)}. This position would allow me to leverage my experience in ${resumeKeywords.achievements?.[0] || 'problem-solving'} while contributing to ${extractCompanyGoals(jobDescription)}. I'm especially excited about the chance to work with ${jobKeywords.technologies?.join(', ') || 'cutting-edge technologies'} and make a meaningful impact.`;
+        
+      case 'What makes you a good fit for this position?':
+        return `I believe I'm an excellent fit for this position because of my strong background in ${resumeKeywords.skills?.join(', ') || 'software development'}. My experience with ${resumeKeywords.technologies?.join(', ') || 'various technologies'} directly relates to the requirements mentioned in the job description. I've successfully ${resumeKeywords.achievements?.[0] || 'delivered projects'} and have a proven track record of ${resumeKeywords.strengths?.join(', ') || 'problem-solving and teamwork'}. Additionally, my experience with ${resumeKeywords.experience || 'similar projects'} has prepared me well for the challenges this role presents. I'm confident that my skills in ${resumeKeywords.skills?.slice(0, 3).join(', ') || 'technical areas'} combined with my passion for ${extractJobFocus(jobDescription)} make me the ideal candidate.`;
+        
+      case 'Tell me about yourself':
+        return `I'm a ${resumeKeywords.experience || 'experienced'} professional with a strong background in ${resumeKeywords.skills?.join(', ') || 'software development'}. Over the past ${resumeKeywords.years || 'several'} years, I've specialized in ${resumeKeywords.technologies?.join(', ') || 'various technologies'} and have had the opportunity to work on ${resumeKeywords.projects || 'diverse projects'}. My experience includes ${resumeKeywords.achievements?.[0] || 'successful project delivery'} and I've developed expertise in ${resumeKeywords.skills?.slice(0, 3).join(', ') || 'key technical areas'}. I'm particularly passionate about ${extractJobFocus(jobDescription)} and have always been drawn to roles that allow me to ${extractJobResponsibilities(jobDescription)}. I'm excited about this opportunity because it would allow me to apply my skills in ${resumeKeywords.skills?.join(', ') || 'relevant areas'} while contributing to ${extractCompanyGoals(jobDescription)}.`;
+        
+      case 'What are your greatest strengths?':
+        return `My greatest strengths include my technical expertise in ${resumeKeywords.skills?.join(', ') || 'software development'}, my problem-solving abilities, and my collaborative approach to work. I have extensive experience with ${resumeKeywords.technologies?.join(', ') || 'various technologies'} and have consistently delivered ${resumeKeywords.achievements?.[0] || 'successful projects'}. I'm particularly strong at ${resumeKeywords.strengths?.join(', ') || 'analyzing complex problems and finding innovative solutions'}. Additionally, I have excellent communication skills and enjoy working in team environments. My ability to ${resumeKeywords.achievements?.[1] || 'manage multiple projects simultaneously'} while maintaining high quality standards has been a key factor in my success. I believe these strengths would be valuable in this role, especially when it comes to ${extractJobResponsibilities(jobDescription)}.`;
+        
+      case 'What is your biggest weakness?':
+        return `One area I've been working to improve is ${resumeKeywords.weakness || 'public speaking'}. Early in my career, I found it challenging to present technical concepts to large groups. However, I've taken proactive steps to address this by ${resumeKeywords.improvement || 'joining a local tech meetup and practicing presentations'}. I've also sought feedback from colleagues and have seen significant improvement over the past year. This experience has taught me the importance of continuous learning and stepping outside my comfort zone. I now view this as a growth opportunity rather than a limitation, and I'm committed to further developing this skill. In fact, I believe this role would provide excellent opportunities to continue improving in this area while contributing to ${extractJobResponsibilities(jobDescription)}.`;
+        
+      case 'Where do you see yourself in 5 years?':
+        return `In five years, I envision myself as a ${extractJobLevel(jobDescription)} who has made significant contributions to ${extractCompanyGoals(jobDescription)}. I'm particularly interested in developing expertise in ${jobKeywords.technologies?.join(', ') || 'emerging technologies'} and taking on more leadership responsibilities. I see myself mentoring junior developers and contributing to strategic technical decisions. I'm also passionate about ${resumeKeywords.interests || 'continuous learning'} and plan to pursue ${resumeKeywords.certifications || 'relevant certifications'} to stay current with industry trends. This role would be an excellent stepping stone toward these goals, as it would allow me to ${extractJobResponsibilities(jobDescription)} while developing the skills needed for future growth.`;
+        
+      case 'Why do you want to work for our company?':
+        return `I'm very excited about the opportunity to work here because of your company's reputation for ${extractCompanyValues(jobDescription)} and your commitment to ${extractCompanyGoals(jobDescription)}. I'm particularly drawn to your focus on ${jobKeywords.technologies?.join(', ') || 'innovation'} and your approach to ${extractJobResponsibilities(jobDescription)}. Having researched your company, I'm impressed by your ${extractCompanyAchievements(jobDescription)} and your dedication to ${extractCompanyMission(jobDescription)}. I believe my background in ${resumeKeywords.skills?.join(', ') || 'relevant areas'} would allow me to contribute meaningfully to your team's success. I'm especially excited about the opportunity to work with ${jobKeywords.technologies?.join(', ') || 'cutting-edge technologies'} and to be part of a team that values ${extractCompanyValues(jobDescription)}.`;
+        
+      case 'What questions do you have for us?':
+        return `I have several questions that would help me better understand the role and the team. First, what does success look like in this position during the first 90 days? I'm also curious about the team structure and how this role fits into the broader organization. What are the biggest challenges the team is currently facing, and how would this role contribute to solving them? I'd also like to learn more about the company culture and what you enjoy most about working here. Additionally, I'm interested in understanding the growth opportunities and how the company supports professional development. Finally, what technologies or tools does the team use that I should be familiar with?`;
+        
+      default:
+        return `Based on my experience with ${resumeKeywords.skills?.join(', ') || 'software development'}, I believe I would be a strong fit for this role. My background in ${resumeKeywords.technologies?.join(', ') || 'various technologies'} has prepared me well for the challenges this position presents. I'm particularly excited about the opportunity to ${extractJobResponsibilities(jobDescription)} and contribute to ${extractCompanyGoals(jobDescription)}. My experience with ${resumeKeywords.achievements?.[0] || 'successful project delivery'} demonstrates my ability to deliver results, and I'm confident I can bring that same level of success to this role.`;
+    }
+  };
+
+  // Helper functions to extract information
+  const extractKeywords = (text) => {
+    const lowerText = text.toLowerCase();
+    return {
+      skills: extractSkills(lowerText),
+      technologies: extractTechnologies(lowerText),
+      experience: extractExperience(lowerText),
+      achievements: extractAchievements(lowerText),
+      strengths: extractStrengths(lowerText),
+      years: extractYears(lowerText),
+      projects: extractProjects(lowerText),
+      weakness: extractWeakness(lowerText),
+      improvement: extractImprovement(lowerText),
+      interests: extractInterests(lowerText),
+      certifications: extractCertifications(lowerText)
+    };
+  };
+
+  const extractSkills = (text) => {
+    const skills = ['javascript', 'python', 'java', 'react', 'node.js', 'sql', 'aws', 'docker', 'kubernetes', 'git', 'agile', 'scrum'];
+    return skills.filter(skill => text.includes(skill));
+  };
+
+  const extractTechnologies = (text) => {
+    const technologies = ['react', 'angular', 'vue', 'node.js', 'express', 'mongodb', 'postgresql', 'mysql', 'redis', 'docker', 'kubernetes', 'aws', 'azure', 'gcp'];
+    return technologies.filter(tech => text.includes(tech));
+  };
+
+  const extractExperience = (text) => {
+    if (text.includes('senior') || text.includes('lead')) return 'senior-level';
+    if (text.includes('junior') || text.includes('entry')) return 'junior-level';
+    return 'mid-level';
+  };
+
+  const extractAchievements = (text) => {
+    const achievements = [];
+    if (text.includes('increased') || text.includes('improved')) achievements.push('performance improvements');
+    if (text.includes('led') || text.includes('managed')) achievements.push('team leadership');
+    if (text.includes('developed') || text.includes('built')) achievements.push('project development');
+    return achievements;
+  };
+
+  const extractStrengths = (text) => {
+    const strengths = [];
+    if (text.includes('problem') || text.includes('solve')) strengths.push('problem-solving');
+    if (text.includes('team') || text.includes('collaborate')) strengths.push('teamwork');
+    if (text.includes('communicate') || text.includes('present')) strengths.push('communication');
+    return strengths;
+  };
+
+  const extractYears = (text) => {
+    const yearMatch = text.match(/(\d+)\s*years?/);
+    return yearMatch ? yearMatch[1] : 'several';
+  };
+
+  const extractProjects = (text) => {
+    if (text.includes('web') || text.includes('application')) return 'web applications';
+    if (text.includes('mobile') || text.includes('app')) return 'mobile applications';
+    return 'diverse projects';
+  };
+
+  const extractWeakness = (text) => {
+    if (text.includes('public') || text.includes('speak')) return 'public speaking';
+    if (text.includes('time') || text.includes('manage')) return 'time management';
+    return 'public speaking';
+  };
+
+  const extractImprovement = (text) => {
+    return 'joining professional development groups and seeking feedback';
+  };
+
+  const extractInterests = (text) => {
+    if (text.includes('ai') || text.includes('machine')) return 'artificial intelligence';
+    if (text.includes('cloud') || text.includes('aws')) return 'cloud computing';
+    return 'continuous learning';
+  };
+
+  const extractCertifications = (text) => {
+    if (text.includes('aws')) return 'AWS certifications';
+    if (text.includes('google')) return 'Google Cloud certifications';
+    return 'relevant certifications';
+  };
+
+  const extractJobResponsibilities = (jobDesc) => {
+    const lowerJob = jobDesc.toLowerCase();
+    if (lowerJob.includes('develop') || lowerJob.includes('build')) return 'developing innovative solutions';
+    if (lowerJob.includes('manage') || lowerJob.includes('lead')) return 'leading technical initiatives';
+    if (lowerJob.includes('analyze') || lowerJob.includes('design')) return 'analyzing and designing systems';
+    return 'contributing to technical projects';
+  };
+
+  const extractCompanyGoals = (jobDesc) => {
+    const lowerJob = jobDesc.toLowerCase();
+    if (lowerJob.includes('innovation') || lowerJob.includes('cutting-edge')) return 'innovative solutions';
+    if (lowerJob.includes('growth') || lowerJob.includes('expand')) return 'company growth';
+    if (lowerJob.includes('customer') || lowerJob.includes('user')) return 'customer satisfaction';
+    return 'organizational success';
+  };
+
+  const extractJobFocus = (jobDesc) => {
+    const lowerJob = jobDesc.toLowerCase();
+    if (lowerJob.includes('software') || lowerJob.includes('development')) return 'software development';
+    if (lowerJob.includes('data') || lowerJob.includes('analytics')) return 'data analysis';
+    if (lowerJob.includes('ai') || lowerJob.includes('machine')) return 'artificial intelligence';
+    return 'technology innovation';
+  };
+
+  const extractJobLevel = (jobDesc) => {
+    const lowerJob = jobDesc.toLowerCase();
+    if (lowerJob.includes('senior') || lowerJob.includes('lead')) return 'senior technical leader';
+    if (lowerJob.includes('principal') || lowerJob.includes('architect')) return 'principal engineer';
+    return 'technical leader';
+  };
+
+  const extractCompanyValues = (jobDesc) => {
+    const lowerJob = jobDesc.toLowerCase();
+    if (lowerJob.includes('innovation') || lowerJob.includes('creative')) return 'innovation and creativity';
+    if (lowerJob.includes('collaboration') || lowerJob.includes('team')) return 'collaboration and teamwork';
+    if (lowerJob.includes('quality') || lowerJob.includes('excellence')) return 'quality and excellence';
+    return 'excellence and innovation';
+  };
+
+  const extractCompanyAchievements = (jobDesc) => {
+    const lowerJob = jobDesc.toLowerCase();
+    if (lowerJob.includes('award') || lowerJob.includes('recognition')) return 'industry recognition';
+    if (lowerJob.includes('growth') || lowerJob.includes('expand')) return 'rapid growth';
+    if (lowerJob.includes('customer') || lowerJob.includes('client')) return 'customer satisfaction';
+    return 'industry leadership';
+  };
+
+  const extractCompanyMission = (jobDesc) => {
+    const lowerJob = jobDesc.toLowerCase();
+    if (lowerJob.includes('customer') || lowerJob.includes('user')) return 'customer success';
+    if (lowerJob.includes('innovation') || lowerJob.includes('technology')) return 'technological advancement';
+    if (lowerJob.includes('impact') || lowerJob.includes('change')) return 'positive impact';
+    return 'organizational excellence';
+  };
+
   const commonQuestions = [
     'Why are you interested in this role?',
     'What makes you a good fit for this position?',
@@ -44,11 +219,11 @@ const AnswerGenerator = () => {
     setLoading(true);
     
     try {
-      // For demo purposes, generate mock answers since backend is not available
-      const mockAnswers = questions.map((question, index) => ({
+      // Generate personalized answers based on resume and job description
+      const personalizedAnswers = questions.map((question, index) => ({
         id: index + 1,
         question,
-        answer: `Based on your resume and the job description, here's a tailored answer for "${question}". This response highlights your relevant experience and aligns with the company's needs. You can customize this answer further based on your specific background and the role requirements.`,
+        answer: generatePersonalizedAnswer(question, resumeText, jobDescription),
         tips: [
           'Use specific examples from your experience',
           'Connect your skills to the job requirements',
@@ -58,7 +233,7 @@ const AnswerGenerator = () => {
         feedback: null
       }));
       
-      setGeneratedAnswers(mockAnswers);
+      setGeneratedAnswers(personalizedAnswers);
       toast.success('Answers generated successfully!');
     } catch (error) {
       console.error('Generate answers error:', error);
