@@ -4,10 +4,8 @@ import { Link } from 'react-router-dom';
 import {
   Briefcase,
   FileText,
-  Clock,
   CheckCircle,
   XCircle,
-  AlertCircle,
   Plus,
   Eye,
   Star,

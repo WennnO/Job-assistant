@@ -12,10 +12,6 @@ import {
   Building,
   DollarSign,
   Star,
-  CheckCircle,
-  XCircle,
-  Clock,
-  AlertCircle,
   Briefcase,
   User,
   LogIn
