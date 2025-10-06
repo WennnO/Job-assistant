@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import {
@@ -10,7 +10,6 @@ import {
   Edit,
   Save,
   Lightbulb,
-  Upload,
   FileText,
   User,
   LogIn
@@ -32,14 +31,7 @@ const AnswerGenerator = () => {
   // API base URL
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
-  // Load user's resumes
-  useEffect(() => {
-    if (user) {
-      loadResumes();
-    }
-  }, [user]);
-
-  const loadResumes = async () => {
+  const loadResumes = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/api/resumes/my-resumes`, {
@@ -52,7 +44,14 @@ const AnswerGenerator = () => {
     } catch (error) {
       console.error('Failed to load resumes:', error);
     }
-  };
+  }, [API_BASE_URL]);
+
+  // Load user's resumes
+  useEffect(() => {
+    if (user) {
+      loadResumes();
+    }
+  }, [user, loadResumes]);
 
   const commonQuestions = [
     'Why are you interested in this role?',
