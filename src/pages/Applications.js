@@ -16,6 +16,7 @@ import {
   User,
   LogIn
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Applications = () => {
   const { user } = useAuth();
@@ -141,6 +142,32 @@ const Applications = () => {
     setFilteredApplications(filtered);
   }, [applications, searchTerm, statusFilter, sortBy]);
 
+  // Handle application actions
+  const handleViewApplication = (applicationId) => {
+    const application = applications.find(app => app.id === applicationId);
+    if (application) {
+      toast.success(`Viewing application for ${application.position} at ${application.company}`);
+      // Here you could open a modal or navigate to a detail page
+      console.log('View application:', application);
+    }
+  };
+
+  const handleEditApplication = (applicationId) => {
+    const application = applications.find(app => app.id === applicationId);
+    if (application) {
+      toast.success(`Editing application for ${application.position} at ${application.company}`);
+      // Here you could open an edit modal or navigate to an edit page
+      console.log('Edit application:', application);
+    }
+  };
+
+  const handleDeleteApplication = (applicationId) => {
+    const application = applications.find(app => app.id === applicationId);
+    if (application && window.confirm(`Are you sure you want to delete the application for ${application.position} at ${application.company}?`)) {
+      setApplications(applications.filter(app => app.id !== applicationId));
+      toast.success('Application deleted successfully');
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -328,13 +355,25 @@ const Applications = () => {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                  <button 
+                    onClick={() => handleViewApplication(application.id)}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                    title="View details"
+                  >
                     <Eye className="h-5 w-5" />
                   </button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                  <button 
+                    onClick={() => handleEditApplication(application.id)}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                    title="Edit application"
+                  >
                     <Edit className="h-5 w-5" />
                   </button>
-                  <button className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                  <button 
+                    onClick={() => handleDeleteApplication(application.id)}
+                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                    title="Delete application"
+                  >
                     <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
@@ -360,7 +399,10 @@ const Applications = () => {
             )}
           </p>
           {user ? (
-            <button className="btn-primary">
+            <button 
+              onClick={() => toast.success('Add Application feature coming soon!')}
+              className="btn-primary"
+            >
               <Plus className="h-5 w-5 mr-2" />
               Add Application
             </button>

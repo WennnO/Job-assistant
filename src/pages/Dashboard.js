@@ -267,9 +267,9 @@ const Dashboard = () => {
           <div className="card">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-900">Recent Applications</h2>
-              <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+              <Link to="/applications" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
                 View all
-              </button>
+              </Link>
             </div>
             <div className="space-y-4">
               {recentApplications.map((application) => (
@@ -358,9 +358,14 @@ const Dashboard = () => {
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{insight.title}</p>
                     <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
-                    <button className="text-primary-600 hover:text-primary-700 text-sm font-medium mt-1">
+                    <Link 
+                      to={insight.action === 'Analyze Resume' ? '/resume-analyzer' : 
+                          insight.action === 'Generate Answers' ? '/answer-generator' : 
+                          insight.action === 'View Applications' ? '/applications' : '#'}
+                      className="text-primary-600 hover:text-primary-700 text-sm font-medium mt-1"
+                    >
                       {insight.action}
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}
