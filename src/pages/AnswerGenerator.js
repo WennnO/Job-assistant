@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 import {
   MessageSquare,
   Copy,
@@ -9,49 +7,17 @@ import {
   ThumbsDown,
   Edit,
   Save,
-  Lightbulb,
-  FileText,
-  User,
-  LogIn
+  Lightbulb
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 
 const AnswerGenerator = () => {
-  const { user } = useAuth();
   const [jobDescription, setJobDescription] = useState('');
   const [resumeText, setResumeText] = useState('');
   const [questions, setQuestions] = useState([]);
   const [generatedAnswers, setGeneratedAnswers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingAnswer, setEditingAnswer] = useState(null);
-  const [resumes, setResumes] = useState([]);
-  const [showResumeModal, setShowResumeModal] = useState(false);
-
-  // API base URL
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-
-  const loadResumes = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/api/resumes/my-resumes`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.data.success) {
-        setResumes(response.data.data.resumes);
-      }
-    } catch (error) {
-      console.error('Failed to load resumes:', error);
-    }
-  }, [API_BASE_URL]);
-
-  // Load user's resumes
-  useEffect(() => {
-    if (user) {
-      loadResumes();
-    }
-  }, [user, loadResumes]);
 
   const commonQuestions = [
     'Why are you interested in this role?',
@@ -71,48 +37,32 @@ const AnswerGenerator = () => {
     }
 
     if (!resumeText.trim()) {
-      toast.error('Please provide your resume text or select a resume');
-      return;
-    }
-
-    if (!user) {
-      toast.error('Please sign in to generate answers');
+      toast.error('Please provide your resume text');
       return;
     }
 
     setLoading(true);
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_BASE_URL}/api/agents/generate-answers`, {
-        resumeText,
-        jobDescription,
-        questions
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.success) {
-        const answers = response.data.data.answers || questions.map((question, index) => ({
-          id: index + 1,
-          question,
-          answer: `Based on your resume and the job description, here's a tailored answer for "${question}". This response highlights your relevant experience and aligns with the company's needs...`,
-          tips: [
-            'Use specific examples from your experience',
-            'Connect your skills to the job requirements',
-            'Show enthusiasm for the role and company'
-          ],
-          feedback: null
-        }));
-        
-        setGeneratedAnswers(answers);
-        toast.success('Answers generated successfully!');
-      } else {
-        throw new Error(response.data.message || 'Failed to generate answers');
-      }
+      // For demo purposes, generate mock answers since backend is not available
+      const mockAnswers = questions.map((question, index) => ({
+        id: index + 1,
+        question,
+        answer: `Based on your resume and the job description, here's a tailored answer for "${question}". This response highlights your relevant experience and aligns with the company's needs. You can customize this answer further based on your specific background and the role requirements.`,
+        tips: [
+          'Use specific examples from your experience',
+          'Connect your skills to the job requirements',
+          'Show enthusiasm for the role and company',
+          'Quantify your achievements when possible'
+        ],
+        feedback: null
+      }));
+      
+      setGeneratedAnswers(mockAnswers);
+      toast.success('Answers generated successfully!');
     } catch (error) {
       console.error('Generate answers error:', error);
-      toast.error(error.response?.data?.message || 'Failed to generate answers');
+      toast.error('Failed to generate answers');
     } finally {
       setLoading(false);
     }
@@ -160,29 +110,6 @@ const AnswerGenerator = () => {
         <p className="text-gray-600">Generate tailored answers to common interview questions based on your resume and job description</p>
       </div>
 
-      {/* Login Prompt for non-authenticated users */}
-      {!user && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <div className="flex items-center">
-            <User className="h-8 w-8 text-blue-600 mr-4" />
-            <div className="flex-1">
-              <h3 className="text-lg font-medium text-blue-900 mb-2">Sign in for personalized answers</h3>
-              <p className="text-blue-700 mb-4">
-                Get AI-powered answers tailored to your specific resume and experience. Sign in to access the full features.
-              </p>
-              <div className="flex space-x-3">
-                <Link to="/login" className="btn-primary flex items-center">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
-                </Link>
-                <Link to="/register" className="btn-secondary">
-                  Create Account
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Section */}
@@ -200,33 +127,16 @@ const AnswerGenerator = () => {
 
           {/* Resume Section */}
           <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Your Resume</h2>
-              {user && resumes.length > 0 && (
-                <button
-                  onClick={() => setShowResumeModal(true)}
-                  className="text-sm text-primary-600 hover:text-primary-700 flex items-center"
-                >
-                  <FileText className="h-4 w-4 mr-1" />
-                  Select from uploaded resumes
-                </button>
-              )}
-            </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Resume</h2>
             <textarea
               value={resumeText}
               onChange={(e) => setResumeText(e.target.value)}
-              placeholder="Paste your resume text here or select from uploaded resumes..."
+              placeholder="Paste your resume text here..."
               className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
             />
-            {user && (
-              <div className="mt-2 text-sm text-gray-500">
-                {resumes.length > 0 ? (
-                  <span>{resumes.length} resume{resumes.length !== 1 ? 's' : ''} available</span>
-                ) : (
-                  <span>No resumes uploaded yet. <Link to="/resume-analyzer" className="text-primary-600 hover:text-primary-700">Upload one here</Link></span>
-                )}
-              </div>
-            )}
+            <div className="mt-2 text-sm text-gray-500">
+              Paste your resume content to get personalized answers
+            </div>
           </div>
 
           {/* Question Selection */}
@@ -253,7 +163,7 @@ const AnswerGenerator = () => {
           {/* Generate Button */}
           <button
             onClick={handleGenerateAnswers}
-            disabled={!jobDescription.trim() || !resumeText.trim() || questions.length === 0 || loading || !user}
+            disabled={!jobDescription.trim() || !resumeText.trim() || questions.length === 0 || loading}
             className="w-full btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
@@ -410,57 +320,6 @@ const AnswerGenerator = () => {
         </div>
       )}
 
-      {/* Resume Selection Modal */}
-      {showResumeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Resume</h3>
-            <div className="space-y-3">
-              {resumes.map((resume) => (
-                <button
-                  key={resume.id}
-                  onClick={async () => {
-                    try {
-                      const token = localStorage.getItem('token');
-                      const response = await axios.get(`${API_BASE_URL}/api/resumes/${resume.id}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                      });
-                      
-                      if (response.data.success) {
-                        setResumeText(response.data.data.contentText || '');
-                        setShowResumeModal(false);
-                        toast.success('Resume loaded successfully!');
-                      }
-                    } catch (error) {
-                      console.error('Failed to load resume:', error);
-                      toast.error('Failed to load resume');
-                    }
-                  }}
-                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <FileText className="h-5 w-5 text-gray-400 mr-3" />
-                    <div>
-                      <p className="font-medium text-gray-900">{resume.filename}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(resume.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowResumeModal(false)}
-                className="btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
