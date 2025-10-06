@@ -1,0 +1,312 @@
+import React, { useState } from 'react';
+import {
+  MessageSquare,
+  Copy,
+  RefreshCw,
+  ThumbsUp,
+  ThumbsDown,
+  Edit,
+  Save,
+  Lightbulb
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+
+const AnswerGenerator = () => {
+  const [jobDescription, setJobDescription] = useState('');
+  const [userProfile, setUserProfile] = useState('');
+  const [questions, setQuestions] = useState([]);
+  const [generatedAnswers, setGeneratedAnswers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [editingAnswer, setEditingAnswer] = useState(null);
+
+  const commonQuestions = [
+    'Why are you interested in this role?',
+    'What makes you a good fit for this position?',
+    'Tell me about yourself',
+    'What are your greatest strengths?',
+    'What is your biggest weakness?',
+    'Where do you see yourself in 5 years?',
+    'Why do you want to work for our company?',
+    'What questions do you have for us?'
+  ];
+
+  const handleGenerateAnswers = async () => {
+    if (!jobDescription.trim() || questions.length === 0) {
+      toast.error('Please provide a job description and select questions');
+      return;
+    }
+
+    setLoading(true);
+    
+    // Mock generation - replace with actual API call
+    setTimeout(() => {
+      const mockAnswers = questions.map((question, index) => ({
+        id: index + 1,
+        question,
+        answer: `This is a tailored answer for "${question}". Based on the job description and your profile, here's a personalized response that highlights your relevant experience and aligns with the company's needs...`,
+        tips: [
+          'Use specific examples from your experience',
+          'Connect your skills to the job requirements',
+          'Show enthusiasm for the role and company'
+        ],
+        feedback: null
+      }));
+      
+      setGeneratedAnswers(mockAnswers);
+      setLoading(false);
+      toast.success('Answers generated successfully!');
+    }, 2000);
+  };
+
+  const handleCopyAnswer = (answer) => {
+    navigator.clipboard.writeText(answer);
+    toast.success('Answer copied to clipboard!');
+  };
+
+  const handleFeedback = (answerId, feedback) => {
+    setGeneratedAnswers(prev => 
+      prev.map(answer => 
+        answer.id === answerId 
+          ? { ...answer, feedback }
+          : answer
+      )
+    );
+  };
+
+  const handleEditAnswer = (answerId, newAnswer) => {
+    setGeneratedAnswers(prev => 
+      prev.map(answer => 
+        answer.id === answerId 
+          ? { ...answer, answer: newAnswer }
+          : answer
+      )
+    );
+    setEditingAnswer(null);
+  };
+
+  const toggleQuestion = (question) => {
+    if (questions.includes(question)) {
+      setQuestions(questions.filter(q => q !== question));
+    } else {
+      setQuestions([...questions, question]);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Answer Generator</h1>
+        <p className="text-gray-600">Generate tailored answers to common interview questions</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Input Section */}
+        <div className="space-y-6">
+          {/* Job Description */}
+          <div className="card">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Job Description</h2>
+            <textarea
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste the job description here to get tailored answers..."
+              className="w-full h-40 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+            />
+          </div>
+
+          {/* User Profile */}
+          <div className="card">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Profile</h2>
+            <textarea
+              value={userProfile}
+              onChange={(e) => setUserProfile(e.target.value)}
+              placeholder="Briefly describe your background, skills, and experience..."
+              className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+            />
+          </div>
+
+          {/* Question Selection */}
+          <div className="card">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Questions</h2>
+            <div className="space-y-3">
+              {commonQuestions.map((question) => (
+                <label key={question} className="flex items-start">
+                  <input
+                    type="checkbox"
+                    checked={questions.includes(question)}
+                    onChange={() => toggleQuestion(question)}
+                    className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-3 text-sm text-gray-700">{question}</span>
+                </label>
+              ))}
+            </div>
+            <div className="mt-4 text-sm text-gray-500">
+              {questions.length} question{questions.length !== 1 ? 's' : ''} selected
+            </div>
+          </div>
+
+          {/* Generate Button */}
+          <button
+            onClick={handleGenerateAnswers}
+            disabled={!jobDescription.trim() || questions.length === 0 || loading}
+            className="w-full btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Generating...
+              </>
+            ) : (
+              <>
+                <MessageSquare className="h-5 w-5 mr-2" />
+                Generate Answers
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Results Section */}
+        <div className="space-y-6">
+          {generatedAnswers.length > 0 ? (
+            generatedAnswers.map((item) => (
+              <div key={item.id} className="card">
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">{item.question}</h3>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleCopyAnswer(item.answer)}
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                      title="Copy answer"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setEditingAnswer(item.id)}
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                      title="Edit answer"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {editingAnswer === item.id ? (
+                  <div className="space-y-4">
+                    <textarea
+                      defaultValue={item.answer}
+                      className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    />
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditAnswer(item.id, document.querySelector('textarea').value)}
+                        className="btn-primary flex items-center"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingAnswer(null)}
+                        className="btn-secondary"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-gray-700 leading-relaxed">{item.answer}</p>
+                    </div>
+
+                    {/* Tips */}
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <div className="flex items-center mb-2">
+                        <Lightbulb className="h-4 w-4 text-blue-600 mr-2" />
+                        <span className="text-sm font-medium text-blue-900">Tips for this answer:</span>
+                      </div>
+                      <ul className="space-y-1">
+                        {item.tips.map((tip, index) => (
+                          <li key={index} className="text-sm text-blue-800">• {tip}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Feedback */}
+                    <div className="flex items-center space-x-4">
+                      <span className="text-sm text-gray-600">Was this helpful?</span>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleFeedback(item.id, 'positive')}
+                          className={`p-2 rounded-lg ${
+                            item.feedback === 'positive' 
+                              ? 'bg-green-100 text-green-600' 
+                              : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+                          }`}
+                        >
+                          <ThumbsUp className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleFeedback(item.id, 'negative')}
+                          className={`p-2 rounded-lg ${
+                            item.feedback === 'negative' 
+                              ? 'bg-red-100 text-red-600' 
+                              : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                          }`}
+                        >
+                          <ThumbsDown className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="card text-center py-12">
+              <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Ready to generate answers?</h3>
+              <p className="text-gray-600">
+                Provide a job description and select questions to get started
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      {generatedAnswers.length > 0 && (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <Copy className="h-6 w-6 text-primary-600 mr-3" />
+              <div className="text-left">
+                <p className="font-medium text-gray-900">Copy All Answers</p>
+                <p className="text-sm text-gray-600">Copy all generated answers to clipboard</p>
+              </div>
+            </button>
+            
+            <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <Save className="h-6 w-6 text-primary-600 mr-3" />
+              <div className="text-left">
+                <p className="font-medium text-gray-900">Save as Template</p>
+                <p className="text-sm text-gray-600">Save these answers as a template</p>
+              </div>
+            </button>
+            
+            <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <RefreshCw className="h-6 w-6 text-primary-600 mr-3" />
+              <div className="text-left">
+                <p className="font-medium text-gray-900">Regenerate All</p>
+                <p className="text-sm text-gray-600">Generate new answers with updated content</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AnswerGenerator;
