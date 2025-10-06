@@ -145,22 +145,6 @@ const Applications = () => {
     setFilteredApplications(filtered);
   }, [applications, searchTerm, statusFilter, sortBy]);
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'not_submitted':
-        return <AlertCircle className="h-5 w-5 text-gray-500" />;
-      case 'submitted':
-        return <Clock className="h-5 w-5 text-yellow-500" />;
-      case 'interview_requested':
-        return <Calendar className="h-5 w-5 text-blue-500" />;
-      case 'offer_received':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'rejected':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return <AlertCircle className="h-5 w-5 text-gray-500" />;
-    }
-  };
 
   const getStatusColor = (status) => {
     switch (status) {

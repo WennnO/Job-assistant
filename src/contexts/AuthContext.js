@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [API_BASE_URL]);
 
   const login = async (email, password) => {
     try {

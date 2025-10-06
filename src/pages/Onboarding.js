@@ -176,7 +176,6 @@ const ValuesStep = ({ preferences, setPreferences }) => {
 
 const RolesStep = ({ preferences, setPreferences }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSpecialization, setSelectedSpecialization] = useState('');
 
   const roleCategories = {
     'Technical & Engineering': [
@@ -661,19 +660,6 @@ const SkillsStep = ({ preferences, setPreferences }) => {
     });
   };
 
-  const togglePreference = (skill) => {
-    const newPrefer = preferences.skills.prefer.includes(skill)
-      ? preferences.skills.prefer.filter(s => s !== skill)
-      : [...preferences.skills.prefer, skill];
-    
-    setPreferences({
-      ...preferences,
-      skills: {
-        ...preferences.skills,
-        prefer: newPrefer
-      }
-    });
-  };
 
   const filteredSkills = skills.filter(skill =>
     skill.toLowerCase().includes(searchTerm.toLowerCase())
