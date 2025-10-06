@@ -35,40 +35,9 @@ const ResumeAnalyzer = () => {
     setLoading(true);
     
     try {
-      // For demo purposes, generate mock analysis since backend is not available
-      const mockAnalysis = {
-        matchScore: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
-        strengths: [
-          'Strong technical background in relevant technologies',
-          'Relevant work experience in the field',
-          'Good problem-solving and analytical skills',
-          'Strong communication and teamwork abilities'
-        ],
-        improvements: [
-          'Add more specific examples of your achievements',
-          'Include quantifiable results and metrics',
-          'Highlight leadership experience',
-          'Add relevant certifications or training'
-        ],
-        missingSkills: [
-          'Specific technical skills mentioned in job description',
-          'Industry-specific knowledge',
-          'Recent certifications',
-          'Leadership experience examples'
-        ],
-        recommendations: [
-          'Tailor your skills section to match job requirements',
-          'Add a projects section showcasing your best work',
-          'Include specific metrics in your experience descriptions',
-          'Highlight any relevant certifications or training'
-        ],
-        keywordAnalysis: {
-          matched: ['JavaScript', 'React', 'Node.js', 'Problem Solving', 'Teamwork'],
-          missing: ['Leadership', 'Project Management', 'Agile', 'Cloud Computing']
-        }
-      };
-      
-      setAnalysis(mockAnalysis);
+      // Generate AI-powered analysis based on resume and job description
+      const analysis = generateAIAnalysis(resumeText, jobDescription);
+      setAnalysis(analysis);
       toast.success('Resume analysis completed!');
     } catch (error) {
       console.error('Resume analysis error:', error);
@@ -76,6 +45,287 @@ const ResumeAnalyzer = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // AI-powered analysis function
+  const generateAIAnalysis = (resume, jobDescription) => {
+    const resumeKeywords = extractResumeKeywords(resume);
+    const jobKeywords = extractJobKeywords(jobDescription);
+    
+    // Calculate match score based on keyword overlap and relevance
+    const matchScore = calculateMatchScore(resumeKeywords, jobKeywords);
+    
+    // Generate strengths based on matched skills and experience
+    const strengths = generateStrengths(resumeKeywords, jobKeywords);
+    
+    // Identify areas for improvement
+    const improvements = generateImprovements(resumeKeywords, jobKeywords);
+    
+    // Find missing skills
+    const missingSkills = findMissingSkills(resumeKeywords, jobKeywords);
+    
+    // Generate recommendations
+    const recommendations = generateRecommendations(resumeKeywords, jobKeywords);
+    
+    return {
+      matchScore,
+      strengths,
+      improvements,
+      missingSkills,
+      recommendations,
+      keywordAnalysis: {
+        matched: resumeKeywords.skills.filter(skill => jobKeywords.skills.includes(skill)),
+        missing: jobKeywords.skills.filter(skill => !resumeKeywords.skills.includes(skill))
+      }
+    };
+  };
+
+  // Extract keywords and skills from resume
+  const extractResumeKeywords = (resume) => {
+    const lowerResume = resume.toLowerCase();
+    return {
+      skills: extractSkills(lowerResume),
+      technologies: extractTechnologies(lowerResume),
+      experience: extractExperience(lowerResume),
+      achievements: extractAchievements(lowerResume),
+      education: extractEducation(lowerResume),
+      certifications: extractCertifications(lowerResume),
+      projects: extractProjects(lowerResume)
+    };
+  };
+
+  // Extract keywords and requirements from job description
+  const extractJobKeywords = (jobDesc) => {
+    const lowerJob = jobDesc.toLowerCase();
+    return {
+      skills: extractSkills(lowerJob),
+      technologies: extractTechnologies(lowerJob),
+      requirements: extractRequirements(lowerJob),
+      experience: extractExperience(lowerJob),
+      education: extractEducation(lowerJob),
+      certifications: extractCertifications(lowerJob)
+    };
+  };
+
+  // Calculate match score based on keyword overlap
+  const calculateMatchScore = (resumeKeywords, jobKeywords) => {
+    const resumeSkills = resumeKeywords.skills;
+    const jobSkills = jobKeywords.skills;
+    
+    if (jobSkills.length === 0) return 75; // Default score if no skills found
+    
+    const matchedSkills = resumeSkills.filter(skill => jobSkills.includes(skill));
+    const skillMatchPercentage = (matchedSkills.length / jobSkills.length) * 100;
+    
+    // Additional factors
+    const experienceMatch = calculateExperienceMatch(resumeKeywords.experience, jobKeywords.experience);
+    const technologyMatch = calculateTechnologyMatch(resumeKeywords.technologies, jobKeywords.technologies);
+    
+    // Weighted score calculation
+    const finalScore = Math.min(100, Math.max(40, 
+      (skillMatchPercentage * 0.5) + 
+      (experienceMatch * 0.3) + 
+      (technologyMatch * 0.2)
+    ));
+    
+    return Math.round(finalScore);
+  };
+
+  // Helper functions for keyword extraction
+  const extractSkills = (text) => {
+    const skills = [
+      'javascript', 'python', 'java', 'react', 'angular', 'vue', 'node.js', 'express',
+      'sql', 'mongodb', 'postgresql', 'mysql', 'redis', 'docker', 'kubernetes',
+      'aws', 'azure', 'gcp', 'git', 'agile', 'scrum', 'leadership', 'management',
+      'problem solving', 'communication', 'teamwork', 'analytical', 'creative',
+      'project management', 'data analysis', 'machine learning', 'ai', 'cloud',
+      'devops', 'ci/cd', 'testing', 'debugging', 'frontend', 'backend', 'full stack'
+    ];
+    return skills.filter(skill => text.includes(skill));
+  };
+
+  const extractTechnologies = (text) => {
+    const technologies = [
+      'react', 'angular', 'vue', 'node.js', 'express', 'django', 'flask', 'spring',
+      'mongodb', 'postgresql', 'mysql', 'redis', 'elasticsearch', 'docker', 'kubernetes',
+      'aws', 'azure', 'gcp', 'terraform', 'jenkins', 'gitlab', 'github', 'jira',
+      'figma', 'sketch', 'photoshop', 'illustrator', 'tableau', 'power bi'
+    ];
+    return technologies.filter(tech => text.includes(tech));
+  };
+
+  const extractExperience = (text) => {
+    const experienceKeywords = ['senior', 'lead', 'principal', 'architect', 'manager', 'director'];
+    const foundExperience = experienceKeywords.filter(exp => text.includes(exp));
+    return foundExperience.length > 0 ? foundExperience[0] : 'mid-level';
+  };
+
+  const extractAchievements = (text) => {
+    const achievements = [];
+    if (text.includes('increased') || text.includes('improved')) achievements.push('performance improvements');
+    if (text.includes('led') || text.includes('managed')) achievements.push('leadership');
+    if (text.includes('developed') || text.includes('built')) achievements.push('development');
+    if (text.includes('saved') || text.includes('reduced')) achievements.push('cost savings');
+    return achievements;
+  };
+
+  const extractEducation = (text) => {
+    const educationKeywords = ['bachelor', 'master', 'phd', 'degree', 'university', 'college'];
+    return educationKeywords.filter(edu => text.includes(edu));
+  };
+
+  const extractCertifications = (text) => {
+    const certifications = ['aws', 'azure', 'gcp', 'pmp', 'scrum', 'agile', 'certified'];
+    return certifications.filter(cert => text.includes(cert));
+  };
+
+  const extractProjects = (text) => {
+    const projectKeywords = ['project', 'application', 'system', 'platform', 'website', 'app'];
+    return projectKeywords.filter(proj => text.includes(proj));
+  };
+
+  const extractRequirements = (text) => {
+    const requirements = [];
+    if (text.includes('years') || text.includes('experience')) requirements.push('experience');
+    if (text.includes('degree') || text.includes('education')) requirements.push('education');
+    if (text.includes('certification') || text.includes('certified')) requirements.push('certification');
+    return requirements;
+  };
+
+  // Calculate experience match
+  const calculateExperienceMatch = (resumeExp, jobExp) => {
+    if (!jobExp || jobExp === 'mid-level') return 80;
+    if (resumeExp === jobExp) return 100;
+    if (resumeExp === 'senior' && jobExp === 'mid-level') return 90;
+    if (resumeExp === 'lead' && (jobExp === 'senior' || jobExp === 'mid-level')) return 85;
+    return 70;
+  };
+
+  // Calculate technology match
+  const calculateTechnologyMatch = (resumeTech, jobTech) => {
+    if (jobTech.length === 0) return 80;
+    const matchedTech = resumeTech.filter(tech => jobTech.includes(tech));
+    return (matchedTech.length / jobTech.length) * 100;
+  };
+
+  // Generate strengths based on analysis
+  const generateStrengths = (resumeKeywords, jobKeywords) => {
+    const strengths = [];
+    
+    // Technical skills match
+    const matchedSkills = resumeKeywords.skills.filter(skill => jobKeywords.skills.includes(skill));
+    if (matchedSkills.length > 0) {
+      strengths.push(`Strong technical background in ${matchedSkills.slice(0, 3).join(', ')}`);
+    }
+    
+    // Experience match
+    if (resumeKeywords.experience && jobKeywords.experience) {
+      if (resumeKeywords.experience === jobKeywords.experience || 
+          (resumeKeywords.experience === 'senior' && jobKeywords.experience === 'mid-level')) {
+        strengths.push('Relevant experience level for this position');
+      }
+    }
+    
+    // Technology match
+    const matchedTech = resumeKeywords.technologies.filter(tech => jobKeywords.technologies.includes(tech));
+    if (matchedTech.length > 0) {
+      strengths.push(`Proficiency in ${matchedTech.slice(0, 2).join(' and ')}`);
+    }
+    
+    // Achievements
+    if (resumeKeywords.achievements.length > 0) {
+      strengths.push('Demonstrated track record of achievements and results');
+    }
+    
+    // Education
+    if (resumeKeywords.education.length > 0) {
+      strengths.push('Strong educational background');
+    }
+    
+    // Default strengths if no specific matches
+    if (strengths.length === 0) {
+      strengths.push('Good problem-solving and analytical skills');
+      strengths.push('Strong communication and teamwork abilities');
+    }
+    
+    return strengths.slice(0, 4); // Limit to 4 strengths
+  };
+
+  // Generate improvement suggestions
+  const generateImprovements = (resumeKeywords, jobKeywords) => {
+    const improvements = [];
+    
+    // Missing skills
+    const missingSkills = jobKeywords.skills.filter(skill => !resumeKeywords.skills.includes(skill));
+    if (missingSkills.length > 0) {
+      improvements.push(`Consider highlighting or developing skills in ${missingSkills.slice(0, 2).join(' and ')}`);
+    }
+    
+    // Missing technologies
+    const missingTech = jobKeywords.technologies.filter(tech => !resumeKeywords.technologies.includes(tech));
+    if (missingTech.length > 0) {
+      improvements.push(`Add experience with ${missingTech.slice(0, 2).join(' and ')}`);
+    }
+    
+    // Quantifiable results
+    if (!resumeKeywords.achievements.some(ach => ach.includes('increased') || ach.includes('improved'))) {
+      improvements.push('Include more quantifiable results and metrics in your experience');
+    }
+    
+    // Leadership experience
+    if (!resumeKeywords.skills.includes('leadership') && jobKeywords.skills.includes('leadership')) {
+      improvements.push('Highlight any leadership or management experience');
+    }
+    
+    // Default improvements
+    if (improvements.length === 0) {
+      improvements.push('Add more specific examples of your achievements');
+      improvements.push('Include quantifiable results and metrics');
+    }
+    
+    return improvements.slice(0, 4);
+  };
+
+  // Find missing skills
+  const findMissingSkills = (resumeKeywords, jobKeywords) => {
+    const missingSkills = jobKeywords.skills.filter(skill => !resumeKeywords.skills.includes(skill));
+    const missingTech = jobKeywords.technologies.filter(tech => !resumeKeywords.technologies.includes(tech));
+    
+    return [...missingSkills, ...missingTech].slice(0, 4);
+  };
+
+  // Generate recommendations
+  const generateRecommendations = (resumeKeywords, jobKeywords) => {
+    const recommendations = [];
+    
+    // Skills alignment
+    const missingSkills = jobKeywords.skills.filter(skill => !resumeKeywords.skills.includes(skill));
+    if (missingSkills.length > 0) {
+      recommendations.push('Tailor your skills section to better match job requirements');
+    }
+    
+    // Projects section
+    if (resumeKeywords.projects.length === 0) {
+      recommendations.push('Add a projects section showcasing your best work');
+    }
+    
+    // Metrics and achievements
+    if (resumeKeywords.achievements.length < 2) {
+      recommendations.push('Include more specific metrics and quantifiable achievements');
+    }
+    
+    // Certifications
+    if (jobKeywords.certifications.length > 0 && resumeKeywords.certifications.length === 0) {
+      recommendations.push('Consider obtaining relevant certifications mentioned in the job description');
+    }
+    
+    // Default recommendations
+    if (recommendations.length === 0) {
+      recommendations.push('Highlight your most relevant experience at the top');
+      recommendations.push('Use action verbs to describe your accomplishments');
+    }
+    
+    return recommendations.slice(0, 3);
   };
 
   const getScoreColor = (score) => {
