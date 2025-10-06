@@ -25,6 +25,17 @@ const Applications = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date');
+  const [editingApplication, setEditingApplication] = useState(null);
+  const [editForm, setEditForm] = useState({
+    position: '',
+    company: '',
+    location: '',
+    salary: '',
+    status: '',
+    appliedDate: '',
+    notes: '',
+    nextAction: ''
+  });
 
   const statusOptions = [
     { value: 'all', label: 'All Applications', count: 0 },
@@ -155,10 +166,54 @@ const Applications = () => {
   const handleEditApplication = (applicationId) => {
     const application = applications.find(app => app.id === applicationId);
     if (application) {
-      toast.success(`Editing application for ${application.position} at ${application.company}`);
-      // Here you could open an edit modal or navigate to an edit page
-      console.log('Edit application:', application);
+      setEditingApplication(applicationId);
+      setEditForm({
+        position: application.position,
+        company: application.company,
+        location: application.location,
+        salary: application.salary,
+        status: application.status,
+        appliedDate: application.appliedDate,
+        notes: application.notes || '',
+        nextAction: application.nextAction || ''
+      });
     }
+  };
+
+  const handleSaveEdit = () => {
+    if (editingApplication) {
+      setApplications(applications.map(app => 
+        app.id === editingApplication 
+          ? { ...app, ...editForm }
+          : app
+      ));
+      setEditingApplication(null);
+      setEditForm({
+        position: '',
+        company: '',
+        location: '',
+        salary: '',
+        status: '',
+        appliedDate: '',
+        notes: '',
+        nextAction: ''
+      });
+      toast.success('Application updated successfully!');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingApplication(null);
+    setEditForm({
+      position: '',
+      company: '',
+      location: '',
+      salary: '',
+      status: '',
+      appliedDate: '',
+      notes: '',
+      nextAction: ''
+    });
   };
 
   const handleDeleteApplication = (applicationId) => {
@@ -296,89 +351,191 @@ const Applications = () => {
       <div className="space-y-4">
         {filteredApplications.map((application) => (
           <div key={application.id} className="card hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Building className="h-6 w-6 text-primary-600" />
+            {editingApplication === application.id ? (
+              // Edit Mode
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                    <input
+                      type="text"
+                      value={editForm.position}
+                      onChange={(e) => setEditForm({...editForm, position: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
                   </div>
-                  
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{application.position}</h3>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                        {getStatusText(application.status)}
-                      </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                    <input
+                      type="text"
+                      value={editForm.company}
+                      onChange={(e) => setEditForm({...editForm, company: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <input
+                      type="text"
+                      value={editForm.location}
+                      onChange={(e) => setEditForm({...editForm, location: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Salary</label>
+                    <input
+                      type="text"
+                      value={editForm.salary}
+                      onChange={(e) => setEditForm({...editForm, salary: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select
+                      value={editForm.status}
+                      onChange={(e) => setEditForm({...editForm, status: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="not_submitted">Not Submitted</option>
+                      <option value="submitted">Submitted</option>
+                      <option value="interview_requested">Interview Requested</option>
+                      <option value="offer_received">Offer Received</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Applied Date</label>
+                    <input
+                      type="date"
+                      value={editForm.appliedDate}
+                      onChange={(e) => setEditForm({...editForm, appliedDate: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                  <textarea
+                    value={editForm.notes}
+                    onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Add any notes about this application..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Next Action</label>
+                  <input
+                    type="text"
+                    value={editForm.nextAction}
+                    onChange={(e) => setEditForm({...editForm, nextAction: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="e.g., Prepare for phone interview on Jan 20th"
+                  />
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={handleCancelEdit}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    className="btn-primary"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // View Mode
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Building className="h-6 w-6 text-primary-600" />
                     </div>
                     
-                    <p className="text-gray-600 font-medium">{application.company}</p>
-                    
-                    <div className="flex items-center space-x-6 mt-2 text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {application.location}
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">{application.position}</h3>
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                          {getStatusText(application.status)}
+                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <DollarSign className="h-4 w-4 mr-1" />
-                        {application.salary}
-                      </div>
-                      {application.appliedDate && (
+                      
+                      <p className="text-gray-600 font-medium">{application.company}</p>
+                      
+                      <div className="flex items-center space-x-6 mt-2 text-sm text-gray-500">
                         <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          Applied {new Date(application.appliedDate).toLocaleDateString()}
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {application.location}
+                        </div>
+                        <div className="flex items-center">
+                          <DollarSign className="h-4 w-4 mr-1" />
+                          {application.salary}
+                        </div>
+                        {application.appliedDate && (
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            Applied {new Date(application.appliedDate).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {application.notes && (
+                        <p className="text-sm text-gray-600 mt-2 italic">"{application.notes}"</p>
+                      )}
+                      
+                      {application.nextAction && (
+                        <div className="mt-3 p-2 bg-blue-50 rounded-lg">
+                          <p className="text-sm text-blue-800">
+                            <strong>Next Action:</strong> {application.nextAction}
+                          </p>
                         </div>
                       )}
                     </div>
-                    
-                    {application.notes && (
-                      <p className="text-sm text-gray-600 mt-2 italic">"{application.notes}"</p>
-                    )}
-                    
-                    {application.nextAction && (
-                      <div className="mt-3 p-2 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-800">
-                          <strong>Next Action:</strong> {application.nextAction}
-                        </p>
-                      </div>
-                    )}
                   </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                    <span className="text-lg font-semibold text-gray-900">{application.matchScore}%</span>
-                  </div>
-                  <span className="text-xs text-gray-500">Match Score</span>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <button 
-                    onClick={() => handleViewApplication(application.id)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-                    title="View details"
-                  >
-                    <Eye className="h-5 w-5" />
-                  </button>
-                  <button 
-                    onClick={() => handleEditApplication(application.id)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-                    title="Edit application"
-                  >
-                    <Edit className="h-5 w-5" />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteApplication(application.id)}
-                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                    title="Delete application"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                      <span className="text-lg font-semibold text-gray-900">{application.matchScore}%</span>
+                    </div>
+                    <span className="text-xs text-gray-500">Match Score</span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      onClick={() => handleViewApplication(application.id)}
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                      title="View details"
+                    >
+                      <Eye className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleEditApplication(application.id)}
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                      title="Edit application"
+                    >
+                      <Edit className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteApplication(application.id)}
+                      className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                      title="Delete application"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         ))}
       </div>
